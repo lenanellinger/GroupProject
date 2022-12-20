@@ -1,12 +1,18 @@
 import numpy as np
 import itertools
 from matplotlib import pyplot as plt
+from Bio import SeqIO
 
-def getSequence():
+def getSequences(filePath):
     """
 
-    :return: sequence as string
+    :return: list of sequences
     """
+    sequences = []
+    with open(filePath) as handle:
+        for record in SeqIO.parse(handle, "fasta"):
+            sequences.append(record.seq)
+    return sequences
 
 def createPercentageMatrix(sequence, level, keywords):
     """
@@ -52,12 +58,21 @@ def convertMatrixToImage(pMatrix, intronExon, index, level):
 
 
 if __name__ == '__main__':
-    sequencesIntron = ["ACACTAGATACCCTGTACTAGATACCATAAGATGT", "ATGACATGAC"]
-    sequencesExon = ["ATAGACGATAGACAGATAGATACATAG", "TATACTAAGTACATA"]
+    sequencesIntron = getSequences("introns.txt")
+    sequencesExon = getSequences("exon.txt")
 
     for level in range(1, 7):
         alphabet = ['A', 'C', 'G', 'T']
         keywords = [''.join(i) for i in itertools.product(alphabet, repeat=level)]
+        counter = 0
+        for i in keywords:
+            print(i + " ", end = "")
+            counter += 1
+            if counter == 16:
+                print()
+                counter = 0
+
+
 
         for i, seq in enumerate(sequencesIntron):
             pMatrix = createPercentageMatrix(seq, level, keywords)
