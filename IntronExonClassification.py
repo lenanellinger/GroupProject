@@ -16,9 +16,9 @@ def load_data(level):
     :return val: validation data set
     :return test: test data set
     '''
-    # TODO: does images need to have a specific format (pixel)
-    data = tf.keras.utils.image_dataset_from_directory('data/level' + str(level))
-
+    data = tf.keras.utils.image_dataset_from_directory('data/level' + str(level),
+                                                       image_size=(64, 64),
+                                                       batch_size=32)
     train_size = int(len(data) * .7)
     val_size = int(len(data) * .2)
     test_size = int(len(data) * .1)
@@ -49,7 +49,7 @@ def setup_model():
     model.add(Dense(512, activation='relu'))
     model.add(Dense(256, activation='relu'))
     model.add(Dense(128, activation='relu'))
-    model.add(Dense(2, activation='sigmoid'))
+    model.add(Dense(1, activation='sigmoid'))
 
     model.compile('adam', loss=tf.losses.BinaryCrossentropy(), metrics=['accuracy'])
     print(model.summary())
@@ -123,7 +123,9 @@ def evaluate_model(model, test):
         re.update_state(y, yhat)
         acc.update_state(y, yhat)
 
-    print(pre.result(), re.result(), acc.result())
+    tf.print("Precision: ", pre.result())
+    tf.print("Recall: ", re.result())
+    tf.print("Accuracy: ", acc.result())
 
 
 def predict(model, image):
@@ -131,14 +133,12 @@ def predict(model, image):
     predicts a class for a given image
     :param model: trained model
     :param image: to be predicted
-    :return:
     """
     plt.imshow(image)
     plt.show()
 
     yhat = model.predict(np.expand_dims(image / 255, 0))
 
-    # TODO: which class is which?
     if yhat > 0.5:
         print(f'Predicted class is Intron')
     else:
@@ -147,7 +147,7 @@ def predict(model, image):
 
 if __name__ == '__main__':
     model = setup_model()
-    save_model(model)
+    # save_model(model)
     # load_model('imageclassifier.h5')
 
     train, val, test = load_data(1)
