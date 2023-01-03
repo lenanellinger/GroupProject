@@ -1,82 +1,128 @@
 import ensembl_rest
 import json
 import random
-
-f = open("prot-cod_genes.txt", "r")
-allGenes = []
-for line in f:
-    allGenes.append(line)
-f.close()
+from random import randrange
 
 random.seed(42)
-exons = []
-longExons = []
-concatExon = ""
-introns = []
-longIntrons = []
-concatIntron = ""
-while len(longExons) < 50:
-    randomGenes = random.sample(allGenes, 15)
-    idx = []
-    for gene in randomGenes:
-        allGenes.remove(gene)
-    idx.sort(reverse=True)
 
 
 
-    for gene in randomGenes:
-        try:
-            entry = ensembl_rest.symbol_lookup('human', gene.split('\n', 1)[0],
-                                               params={'expand': True})
-        except:
-            continue
-        splittedCanonical = entry['canonical_transcript'].split('.', 1)[0]
-        id = 0
-        for i in range(len(entry['Transcript'])):
-            if entry['Transcript'][i]['id'] == splittedCanonical:
-                id = i
-        Canonical = entry['Transcript'][id]
-        exon_borders = []
-        for exon in Canonical['Exon']:
-            exons.append(ensembl_rest.sequence_id(exon['id'])['seq'])
 
-            exon_border = (exon['start'], exon['end'])
-            exon_borders.append(exon_border)
+class dataGenerator:
 
-        '''
-        Get all introns
-        '''
-        exon_borders.sort(key=lambda x: x[0])
-        sequence = ensembl_rest.sequence_id(Canonical['id'])['seq']
-        startPos = Canonical['start']
-        for t in range(len(exon_borders) - 1):
-            introns.append(sequence[exon_borders[t][1] - startPos:exon_borders[t + 1][0] - startPos])
+    def __init__(self, proteinList):
+        f = open(proteinList)
+        self.allGenes = []
+        for line in f:
+            self.allGenes.append(line)
+        f.close()
+        self.exonArrays = []
+        self.intronArrays = []
 
-    for ex in exons:
-        if len(ex) >= 5000:
-            longExons.append(ex)
-            continue
-        concatExon += ex
-        if len(concatExon) >= 5000:
-            longExons.append(concatExon)
-            concatExon = ""
+    def createExonIntronsInit(self, sequLen=5000, sequNum=2000):
+        longExons = []
+        concatExon = ""
+        longIntrons = []
+        concatIntron = ""
+        while len(longExons) < sequNum:
+            exons = []
+            introns = []
+            randomGenes = random.sample(self.allGenes, 15)
+            for gene in randomGenes:
+                self.allGenes.remove(gene)
 
-    for intron in introns:
-        if len(intron) >= 5000:
-            longIntrons.append(intron)
-            continue
-        concatIntron += intron
-        if len(concatIntron) >= 5000:
-            longIntrons.append(concatIntron)
-            concatIntron = ""
-for exon in longExons:
-    print(len(exon))
+            for gene in randomGenes:
 
-with open("exon.txt", "w") as e:
-    for i in range(len(longExons)):
-        e.write(">" + str(i) + "\n")
-        e.write(longExons[i] + "\n")
-with open("introns.txt", "w") as i:
-    for j in range(len(longIntrons)):
-        i.write(">" + str(j) + "\n")
-        i.write(longIntrons[j] + "\n")
+                try:
+                    entry = ensembl_rest.symbol_lookup('human', gene.split('\n', 1)[0],
+                                                       params={'expand': True})
+                except:
+                    continue
+                splittedCanonical = entry['canonical_transcript'].split('.', 1)[0]
+                id = 0
+                for i in range(len(entry['Transcript'])):
+                    if entry['Transcript'][i]['id'] == splittedCanonical:
+                        id = i
+                Canonical = entry['Transcript'][id]
+                exon_borders = []
+                for exon in Canonical['Exon']:
+                    exons.append(ensembl_rest.sequence_id(exon['id'])['seq'])
+
+                    exon_border = (exon['start'], exon['end'])
+                    exon_borders.append(exon_border)
+
+                '''
+                Get all introns
+                '''
+                exon_borders.sort(key=lambda x: x[0])
+                sequence = ensembl_rest.sequence_id(Canonical['id'])['seq']
+                startPos = Canonical['start']
+                for t in range(len(exon_borders) - 1):
+                    introns.append(sequence[exon_borders[t][1] - startPos:exon_borders[t + 1][0] - startPos])
+
+            for ex in exons:
+                if len(ex) >= sequLen:
+                    longExons.append(ex)
+                    continue
+                concatExon += ex
+                if len(concatExon) >= sequLen:
+                    longExons.append(concatExon)
+                    concatExon = ""
+
+            for intron in introns:
+                if len(intron) >= sequLen:
+                    longIntrons.append(intron)
+                    continue
+                concatIntron += intron
+                if len(concatIntron) >= sequLen:
+                    longIntrons.append(concatIntron)
+                    concatIntron = ""
+
+        self.intronArrays.append(
+            (longIntrons, sequLen, sequLen, False))  # the first sequLen being the real length the second the original
+        self.exonArrays.append((longExons, sequLen, sequLen, "None"))
+
+    def Trimmer(self, length, sequences, method="rndm"):
+        result = []
+        for sequ in sequences:
+            if len(sequ) <= length:
+                continue
+            match method:
+                case "rndm":
+                    cutOffLimit = len(sequ) - length
+                    cutOff = randrange(cutOffLimit)
+                case "left":
+                    cutOff = len(sequ) - length
+                case "right":
+                    cutOff = 0
+            result.append(sequ[cutOff: cutOff + 100])
+        return result
+
+    def sequenceTrimmer(self, length, source, method="rndm"):
+        addingTrimmedE = []
+        addingTrimmedI = []
+        for i in range(len(self.intronArrays)):
+            if self.intronArrays[i][3] == "None" and self.intronArrays[i][2] == source:
+                addingTrimmedI.append((self.Trimmer(length, self.intronArrays[i][0], method), length, source, method))
+                addingTrimmedE.append((self.Trimmer(length, self.exonArrays[i][0], method)), length, source, method)
+        self.exonArrays = self.exonArrays + addingTrimmedE
+        self.intronArrays = self.intronArrays + addingTrimmedI
+
+    def saveSequ(self, IntEx, IntExString):
+        for array in IntEx:
+            with open("%a_%b_%c_%d.txt" % (IntExString, str(array[1]), str(array[2]), array[3]), "w") as e:
+                for i in range(len(array[0])):
+                    e.write("> %e; %a, %b, %c, %d \n" % (i, IntExString, str(array[1]), str(array[2]), array[3]))
+                    e.write(array[0][i] + "\n")
+                e.close()
+
+def main():
+    Generator = dataGenerator("prot-cod_genes.txt")
+    for l in [500, 1000]:
+        Generator.createExonIntronsInit(sequLen=l)
+    for l in [500, 1000]:
+        Generator.Trimmer(l, l, method="right")
+    Generator.saveSequ()
+
+if __name__ == '__main__':
+    main()
