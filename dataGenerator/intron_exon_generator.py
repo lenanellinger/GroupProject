@@ -27,7 +27,7 @@ class dataGenerator:
         while len(longExons) < sequNum:
             exons = []
             introns = []
-            randomGenes = random.sample(self.allGenes, 15)
+            randomGenes = random.sample(self.allGenes, 5)
             for gene in randomGenes:
                 self.allGenes.remove(gene)
 
@@ -77,9 +77,10 @@ class dataGenerator:
                 if len(concatIntron) >= sequLen:
                     longIntrons.append(concatIntron)
                     concatIntron = ""
+            print(str(len(longExons)) + " exons are created, " + str(len(longIntrons)) + " Introns are created")
 
         self.intronArrays.append(
-            (longIntrons, sequLen, sequLen, False))  # the first sequLen being the real length the second the original
+            (longIntrons, sequLen, sequLen, "None"))  # the first sequLen being the real length the second the original
         self.exonArrays.append((longExons, sequLen, sequLen, "None"))
 
     def Trimmer(self, length, sequences, method="rndm"):
@@ -95,7 +96,7 @@ class dataGenerator:
                     cutOff = len(sequ) - length
                 case "right":
                     cutOff = 0
-            result.append(sequ[cutOff: cutOff + 100])
+            result.append(sequ[cutOff: cutOff + length])
         return result
 
     def sequenceTrimmer(self, length, source, method="rndm"):
@@ -104,25 +105,29 @@ class dataGenerator:
         for i in range(len(self.intronArrays)):
             if self.intronArrays[i][3] == "None" and self.intronArrays[i][2] == source:
                 addingTrimmedI.append((self.Trimmer(length, self.intronArrays[i][0], method), length, source, method))
-                addingTrimmedE.append((self.Trimmer(length, self.exonArrays[i][0], method)), length, source, method)
+                addingTrimmedE.append((self.Trimmer(length, self.exonArrays[i][0], method), length, source, method))
         self.exonArrays = self.exonArrays + addingTrimmedE
         self.intronArrays = self.intronArrays + addingTrimmedI
 
     def saveSequ(self, IntEx, IntExString):
-        for array in IntEx:
-            with open("%a_%b_%c_%d.txt" % (IntExString, str(array[1]), str(array[2]), array[3]), "w") as e:
+        if IntEx == "Exon":
+            savedObject = self.exonArrays
+        else:
+            savedObject = self.intronArrays
+        for array in savedObject:
+            with open("%s_%s_%s_%s.txt" % (IntExString, str(array[1]), str(array[2]), array[3]), "w") as e:
                 for i in range(len(array[0])):
-                    e.write("> %e; %a, %b, %c, %d \n" % (i, IntExString, str(array[1]), str(array[2]), array[3]))
+                    e.write("> %s; %s, %s, %s, %s \n" % (i, IntExString, str(array[1]), str(array[2]), array[3]))
                     e.write(array[0][i] + "\n")
                 e.close()
 
 def main():
     Generator = dataGenerator("prot-cod_genes.txt")
-    for l in [500, 1000]:
-        Generator.createExonIntronsInit(sequLen=l)
-    for l in [500, 1000]:
-        Generator.Trimmer(l, l, method="right")
-    Generator.saveSequ()
+    for l in [1000]:
+        Generator.createExonIntronsInit(sequLen=l, sequNum=2000)
+    for l in [1000]:
+        Generator.sequenceTrimmer(length = l,source = l, method="rndm")
+    Generator.saveSequ("Exon", "Exon")
 
 if __name__ == '__main__':
     main()

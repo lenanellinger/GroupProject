@@ -41,21 +41,26 @@ class mixedSequenceGenerator:
             ExonAnnotator[exonStart:exonEnd+1] = True
         ExIntLen = []
         ExIntType = []
+        ExIntPos = []
         prior = 2
         segmentLength = 0
+        segmentPosition = 0
         for anot in ExonAnnotator:
             if int(anot) != prior:
                 ExIntLen.append(segmentLength)
                 ExIntType.append(prior)
+                ExIntPos.append(segmentPosition)
                 segmentLength = 0
             segmentLength += 1
+            segmentPosition +=1
             prior = int(anot)
         ExIntLen.append(segmentLength)
         ExIntType.append(prior)
+        ExIntPos.append(segmentPosition)
 
-        return (sequence, ExonAnnotator, ExIntLen, ExIntType)
+        return (sequence, ExonAnnotator, ExIntType, ExIntLen, ExIntPos)
 
-    def generateSegment(self,left, middle, right, length):
+    def generateSegment(self,left, middle, right, length, currentPos):
         '''
         takes three segment lengths and returns segment a given length with random lengths on the sides
         :param left: length of intron on the left
@@ -64,26 +69,41 @@ class mixedSequenceGenerator:
         :param length: output lenght of the total segment
         :return: tuple containing the idx of all borders
         '''
-        
+        if left < right:
+            maxThreshold = min(left, length - middle)
+            minThreshold = max(0, length - middle - right)
+            leftAdd = randrange(minThreshold, maxThreshold + 1)
+            rightAdd = length - leftAdd - middle
+        else:
+            maxThreshold = min(right, length - middle)
+            minThreshold = max(0, length - middle -left)
+            rightAdd = randrange(minThreshold, maxThreshold)
+            leftAdd = length - middle - rightAdd
+        return (left - leftAdd + currentPos, left + middle + rightAdd + currentPos)
+
 
     def mixedSequences(self, amount, length, exonNum ):
         sequences = []
         while len(sequences) < amount:
             rndmGene = self.geneAnnotator(random.sample(self.allGenes, 1))
             if exonNum == 1:
-                idxStart = 0
-                for segment in range(len(rndmGene[3])):
-                    if rndmGene[3][segment] == 1:
-                        segmentLength = sum(rndmGene[2][segment - 1:segment + 2])
+                for segment in range(len(rndmGene[2])):
+                    if rndmGene[2][segment] == 1:
+                        segmentLength = sum(rndmGene[3][segment - 1:segment + 2])
                         if segmentLength > length:
-                            sequences.append((rndmGene[0][idxStart: idxStart + segmentLength]))
-                        idxStart += sum(rndmGene[2][segment-1: segment+1])
+                            segmentBorders = self.generateSegment(rndmGene[3][segment-1], rndmGene[3][segment],
+                                                                  rndmGene[3][segment +1], rndmGene[4][segment-1]-rndmGene[3][segment-1])
+                            sequences.append([rndmGene[0][segmentBorders[0]:segmentBorders[1] +1],
+                                        segmentBorders,
+                                        (rndmGene[4][segment] - rndmGene[3][segment], rndmGene[4][segment])])
+        return sequences
+
+
+
 
 
 test = mixedSequenceGenerator("prot-cod_genes.txt")
-test2 = test.geneAnnotator("A1CF\n")
-print(test2[2])
-print(test2[3])
+hallo = test.mixedSequences(100, 5000, 1)
 
 
 
