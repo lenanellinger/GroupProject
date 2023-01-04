@@ -85,26 +85,35 @@ class mixedSequenceGenerator:
     def mixedSequences(self, amount, length, exonNum ):
         sequences = []
         while len(sequences) < amount:
-            rndmGene = self.geneAnnotator(random.sample(self.allGenes, 1))
+            rndmGene = self.geneAnnotator(random.sample(self.allGenes, 1)[0])
             if exonNum == 1:
                 for segment in range(len(rndmGene[2])):
-                    if rndmGene[2][segment] == 1:
+                    if rndmGene[2][segment] == 1 and segment != len(rndmGene[2])-1:  # this solution is supoptimal
                         segmentLength = sum(rndmGene[3][segment - 1:segment + 2])
                         if segmentLength > length:
                             segmentBorders = self.generateSegment(rndmGene[3][segment-1], rndmGene[3][segment],
-                                                                  rndmGene[3][segment +1], rndmGene[4][segment-1]-rndmGene[3][segment-1])
+                                                                  rndmGene[3][segment +1], length,
+                                                                  rndmGene[4][segment-1]-rndmGene[3][segment-1]
+                                                                  )
                             sequences.append([rndmGene[0][segmentBorders[0]:segmentBorders[1] +1],
                                         segmentBorders,
-                                        (rndmGene[4][segment] - rndmGene[3][segment], rndmGene[4][segment])])
+                                        (rndmGene[4][segment] - rndmGene[3][segment] - segmentBorders[0], rndmGene[4][segment] - segmentBorders[0]),
+                                        rndmGene[3][segment] / length])
+            print(str(len(sequences)) + " Sequences created")
         return sequences
 
 
 
+def main():
+    mixedSequGenerator = mixedSequenceGenerator("prot-cod_genes.txt")
+    sequences = mixedSequGenerator.mixedSequences(20, 5000, 1)
+    with open("1_exon_5000_length.txt", "w") as e:
+        for i in sequences:
+            e.write("> Exon Position: %s. Exon-Intron-Ratio: %s\n" %(str(i[2]), str(i[3])))
+            e.write("%s \n" %(i[0]))
 
-
-test = mixedSequenceGenerator("prot-cod_genes.txt")
-hallo = test.mixedSequences(100, 5000, 1)
-
+if __name__ == '__main__':
+    main()
 
 
 
