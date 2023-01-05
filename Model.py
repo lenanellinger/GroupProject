@@ -48,11 +48,7 @@ def train_model(model, train, val):
     :return: trained model
     :return: history of training process
     """
-    # logging:
-    logdir = 'logs'
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
-
     # training
-    hist = model.fit(train, epochs=20, validation_data=val, callbacks=[tensorboard_callback])
+    hist = model.fit(train, epochs=20, validation_data=val)
 
     return model, hist
