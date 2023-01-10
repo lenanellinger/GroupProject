@@ -35,7 +35,7 @@ def test_process():
                 ratio = re.findall(r'\d[.]\d+', line)
                 exon_intron_rates.append(float(ratio[0]))
 
-    folder_dir = "../data/images/mixed/inferno/level5/mixed"
+    folder_dir = "../data/images/mixed_inferno_level5/inferno/level5/mixed_inferno_level5"
 
     for i, image in enumerate(os.listdir(folder_dir)):
         im = plt.imread(os.path.join(folder_dir, image))[:, :, :3]
