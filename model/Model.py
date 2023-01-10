@@ -34,6 +34,7 @@ def setup_model():
 def save_model(model, name):
     """
     save the model
+    :param name
     :param model: Tensorflow model
     """
     model.save(os.path.join('trainedModels', name + '.h5'))

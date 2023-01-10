@@ -1,72 +1,83 @@
-import os
 import numpy as np
 import tensorflow as tf
-
-from sklearn.model_selection import KFold, StratifiedKFold
+import csv
 
 from Model import setup_model
 from LoadData import load_data, get_train_test_dataset
-from Evaluation import evaluate_model
 
 
 def get_model_name(level, k):
     return 'model_level' + str(level) + "_fold" + str(k) + '.h5'
 
 
-def cross_validation(data, level):
+def cross_validation(data, level, cmap):
     """
     validates the model with k-fold cross validation
+    :param cmap: color map
+    :param level:
     :param data: whole dataset
-    :param level
     :return average validation accuracy
     :return average validation loss
     """
-    validation_accuracy = []
-    validation_loss = []
-
-    kf = KFold(n_splits=5)
-    skf = StratifiedKFold(n_splits=5, random_state=7, shuffle=True)
-    fold = 1
+    k = 5
 
     train_size = int(len(data) * .9)
     test_size = int(len(data) * .1)
     train_dataset, test_dataset = get_train_test_dataset(data, train_size, test_size)
-    train_images = np.concatenate(list(train_dataset.map(lambda x, y: x)))
-    train_labels = np.concatenate(list(train_dataset.map(lambda x, y: y)))
 
-    for train, val in skf.split(train_images, train_labels):
+    validation_accuracy_folds = []
+    fold_len = int(len(train_dataset) / k)
+    for val_fold in range(k):
+        print()
+        print("Level: " + str(level))
+        print("Cmap: " + cmap)
+        print("Fold: " + str(val_fold))
+        val = train_dataset.skip(val_fold * fold_len).take(fold_len)
+
+        train_1 = train_dataset.take(val_fold * fold_len)
+        train_2 = train_dataset.skip((val_fold + 1) * fold_len).take((k - val_fold - 1) * fold_len)
+        train = train_1.concatenate(train_2)
+
         model = setup_model()
-        checkpoint = tf.keras.callbacks.ModelCheckpoint(os.path.join('trainedModels', get_model_name(level, fold)),
-                                                        monitor='val_accuracy', verbose=1,
-                                                        save_best_only=True, mode='max')
-        callbacks_list = [checkpoint]
-        model.fit(train_images[train], train_labels[train], epochs=20, validation_split=0.2,
-                         callbacks=callbacks_list)
-        model.load_weights(os.path.join('trainedModels', get_model_name(level, fold)))
-        results = model.evaluate(train_images[val], train_labels[val])
+        model.fit(train, epochs=20, validation_data=val)
+        results = model.evaluate(val)
         results = dict(zip(model.metrics_names, results))
 
-        validation_accuracy.append(results['accuracy'])
-        validation_loss.append(results['loss'])
+        validation_accuracy_folds.append(results['accuracy'])
 
         tf.keras.backend.clear_session()
 
-        fold += 1
+    return np.mean(validation_accuracy_folds)
 
-    return np.mean(validation_accuracy), np.mean(validation_loss)
+
+def cv_images_colormap():
+    average_val_accuracy = {}
+    color_maps = ["Greys", "cividis", "viridis", "plasma", "inferno", "magma"]
+
+    for cmap in color_maps:
+        average_val_accuracy[cmap] = []
+        for level in range(1, 7):
+            data = load_data(level, cmap)
+            acc = cross_validation(data, level, cmap)
+            average_val_accuracy[cmap].append(acc)
+
+    with open('cv_colormap_level.csv', 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile, delimiter=',')
+        csv_writer.writerow(["cmap", "1", "2", "3", "4", "5", "6"])
+        for cmap in color_maps:
+            csv_writer.writerow([cmap] + average_val_accuracy[cmap])
+
+    print()
+    print("\t| 1\t| 2\t| 3\t| 4\t| 5\t| 6")
+    print("---------------------------------------")
+    for cmap in color_maps:
+        print(cmap + "\t| " + str(round(average_val_accuracy[cmap][0], 2)) + "\t|"
+              + str(round(average_val_accuracy[cmap][1], 2)) + "\t|"
+              + str(round(average_val_accuracy[cmap][2], 2)) + "\t|"
+              + str(round(average_val_accuracy[cmap][3], 2)) + "\t|"
+              + str(round(average_val_accuracy[cmap][4], 2)) + "\t|"
+              + str(round(average_val_accuracy[cmap][5], 2)))
 
 
 if __name__ == '__main__':
-    average_val_accuracy = []
-    average_val_loss = []
-
-    for level in range(1, 7):
-        data = load_data(level)
-        acc, loss = cross_validation(data, level)
-        average_val_accuracy.append(acc)
-        average_val_loss.append(loss)
-
-    print()
-    print("\t| Acccuracy\t| Loss")
-    for i in range(6):
-        print(str(i+1) + "\t| " + str(round(average_val_accuracy[i], 2)) + "\t\t| " + str(round(average_val_loss[i], 2)))
+    cv_images_colormap()
