@@ -123,7 +123,7 @@ def generate_train_images(introns_file, exons_file, level=None):
         sequences_intron = sequences_intron[:len(sequences_exon)]
 
     if level is not None:
-        mode = exons_file.replace("Exon_", "")
+        mode = exons_file.replace("Exon_", "").replace(".txt", "")
         generate_images_for_level(level, sequences_intron, sequences_exon, "train_data_" + mode)
     else:
         # generate all levels
@@ -149,6 +149,6 @@ def generate_mixed_images():
 if __name__ == '__main__':
     for length in ["100", "300", "500", "1000"]:
         for trim in ["rndm", "None"]:
-            introns = "Exon_" + length + "_" + length + "_" + trim + ".txt"
-            exons = "Intron_" + length + "_" + length + "_" + trim + ".txt"
+            introns = "Intron_" + length + "_" + length + "_" + trim + ".txt"
+            exons = "Exon_" + length + "_" + length + "_" + trim + ".txt"
             generate_train_images(introns, exons, level=4)
