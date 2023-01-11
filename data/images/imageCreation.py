@@ -54,7 +54,7 @@ def convert_matrix_to_image_and_save(p_matrix, intron_exon, index, level, folder
     and saves image
 
     :param p_matrix: percentage Matrix
-    :param intron_exon: if intron or exon or mixed_inferno_level5
+    :param intron_exon: if intron or exon (or None if not known)
     :param index: index of image
     :param level
     :param folder_name: in which folder the images should be saved, if empty folder name is created
@@ -65,12 +65,15 @@ def convert_matrix_to_image_and_save(p_matrix, intron_exon, index, level, folder
 
     color_map = "inferno"
     if folder_name == "":
-        if intron_exon != "intron" and intron_exon != "exon":
-            path = intron_exon + "_" + color_map + "_level" + str(level) + "/" + str(intron_exon)
+        if intron_exon is None:
+            path = "unknown_" + color_map + "_level" + str(level) + "/" + str(intron_exon)
         else:
             path = color_map + "/level" + str(level) + "/" + str(intron_exon)
     else:
-        path = folder_name + "/" + str(intron_exon)
+        if intron_exon is None:
+            path = folder_name
+        else:
+            path = folder_name + "/" + str(intron_exon)
     file_name = "image" + str(index) + ".png"
 
     isExist = os.path.exists(path)
@@ -131,19 +134,20 @@ def generate_train_images(introns_file, exons_file, level=None):
             generate_images_for_level(level, sequences_intron, sequences_exon)
 
 
-def generate_mixed_images():
+def generate_test_images(input_file_name, level=4):
     """
-    generates mixed sequences (an intron with an exon contained)
+    generates images for test sequences (not given if intron or exon)
+    :param input_file_name
+    :param level: default is 4
     """
-    mixed_sequences = get_sequences("../sequenceData/1_exon_5000_length.txt")
-    level = 5
+    sequences = get_sequences("../sequenceData/" + input_file_name)
 
     alphabet = ['A', 'C', 'G', 'T']
     keywords = [''.join(i) for i in itertools.product(alphabet, repeat=level)]
 
-    for i, seq in enumerate(mixed_sequences):
+    for i, seq in enumerate(sequences):
         p_matrix = create_percentage_matrix(seq, level, keywords)
-        convert_matrix_to_image_and_save(p_matrix, "mixed", i, level, folder_name="")
+        convert_matrix_to_image_and_save(p_matrix, None, i, level, folder_name=input_file_name)
 
 
 if __name__ == '__main__':
