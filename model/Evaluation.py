@@ -40,6 +40,7 @@ def evaluate_model(model, test):
     for batch in test.as_numpy_iterator():
         X, y = batch
         yhat = model.predict(X)
+        print(yhat)
         pre.update_state(y, yhat)
         re.update_state(y, yhat)
         acc.update_state(y, yhat)
@@ -47,6 +48,8 @@ def evaluate_model(model, test):
     tf.print("Precision: ", pre.result())
     tf.print("Recall: ", re.result())
     tf.print("Accuracy: ", acc.result())
+
+    return float(pre.result()), float(re.result()), float(acc.result())
 
 
 def predict(model, image):

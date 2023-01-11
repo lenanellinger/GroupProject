@@ -57,7 +57,7 @@ def cv_images_colormap():
     for cmap in color_maps:
         average_val_accuracy[cmap] = []
         for level in range(1, 7):
-            data = load_data(level, cmap)
+            data = load_data('images/' + cmap + '/level' + str(level))
             acc = cross_validation(data, level, cmap)
             average_val_accuracy[cmap].append(acc)
 

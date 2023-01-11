@@ -1,14 +1,13 @@
 import tensorflow as tf
 
 
-def load_data(level, cmap):
-    '''
+def load_data(path):
+    """
     loads the image images for a specific level
-    :param level
-    :param cmap
+    :param path
     :return images: whole dataset
-    '''
-    data = tf.keras.utils.image_dataset_from_directory('images/' + cmap + '/level' + str(level),
+    """
+    data = tf.keras.utils.image_dataset_from_directory(path,
                                                        image_size=(64, 64),
                                                        batch_size=32)
     return data
