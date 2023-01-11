@@ -41,6 +41,6 @@ if __name__ == '__main__':
             pre, re, acc = training(path, "model_" + model_name)
             statistics[model_name] = [pre, re, acc]
 
-    with open('../evaluation/statistics_specific_length.pkl', 'wb') as f:
+    with open('../evaluation/statistics_train_specific_length.pkl', 'wb') as f:
         pickle.dump(statistics, f)
     print(statistics)

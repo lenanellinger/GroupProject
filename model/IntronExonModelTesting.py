@@ -3,6 +3,10 @@ import tensorflow as tf
 import numpy as np
 import re
 import os
+import pickle
+
+from LoadData import load_data
+from Evaluation import evaluate_model
 
 
 def mixed_sequence_test():
@@ -23,5 +27,25 @@ def mixed_sequence_test():
         print("Actual: " + str(exon_intron_rates[i]) + ", Predicted: " + str(yhat[0]))
 
 
+def normal_intron_exon_test(model_name, image_folder):
+    trained_model = tf.keras.models.load_model('trainedModels/' + model_name)
+
+    image_dataset = load_data("../data/images/" + image_folder)
+
+    pre, re, acc = evaluate_model(trained_model, image_dataset)
+
+    return pre, re, acc
+
+
 if __name__ == '__main__':
-    mixed_sequence_test()
+    statistics = {}
+    for length in ["100", "300", "500", "1000"]:
+        for trim in ["rndm", "None"]:
+            model_name = "model_" + length + "_" + length + "_" + trim + ".h5"
+            image_folder = "test_data_normal_exons_introns"
+            pre, re, acc = normal_intron_exon_test(model_name, image_folder)
+            statistics[model_name] = [pre, re, acc]
+
+    with open('../evaluation/statistics_test_normal.pkl', 'wb') as f:
+        pickle.dump(statistics, f)
+    print(statistics)
