@@ -18,6 +18,8 @@ class dataGenerator:
         f.close()
         self.exonArrays = []
         self.intronArrays = []
+        self.normalExons = []
+        self.normalIntrons = []
 
     def createExonIntronsInit(self, sequLen=5000, sequNum=2000):
         longExons = []
@@ -27,7 +29,7 @@ class dataGenerator:
         while len(longExons) < sequNum:
             exons = []
             introns = []
-            randomGenes = random.sample(self.allGenes, 5)
+            randomGenes = random.sample(self.allGenes, 15)
             for gene in randomGenes:
                 self.allGenes.remove(gene)
 
@@ -69,14 +71,15 @@ class dataGenerator:
                     longExons.append(concatExon)
                     concatExon = ""
 
-            for intron in introns:
-                if len(intron) >= sequLen:
-                    longIntrons.append(intron)
-                    continue
-                concatIntron += intron
-                if len(concatIntron) >= sequLen:
-                    longIntrons.append(concatIntron)
-                    concatIntron = ""
+            if len(longIntrons) <= 2000:
+                for intron in introns:
+                    if len(intron) >= sequLen:
+                        longIntrons.append(intron)
+                        continue
+                    concatIntron += intron
+                    if len(concatIntron) >= sequLen:
+                        longIntrons.append(concatIntron)
+                        concatIntron = ""
             print(str(len(longExons)) + " exons are created, " + str(len(longIntrons)) + " Introns are created")
 
         self.intronArrays.append(
@@ -123,10 +126,12 @@ class dataGenerator:
 
 def main():
     Generator = dataGenerator("prot-cod_genes.txt")
-    for l in [1000]:
+    for l in [5000]:
         Generator.createExonIntronsInit(sequLen=l, sequNum=2000)
-    for l in [1000]:
+        print("Data generation done")
+    for l in [5000]:
         Generator.sequenceTrimmer(length = l,source = l, method="rndm")
+        print("Trimming done")
     Generator.saveSequ("Exon", "Exon")
 
 if __name__ == '__main__':
