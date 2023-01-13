@@ -26,10 +26,10 @@ def mixed_sequence_test():
         print("Actual: " + str(exon_intron_rates[i]) + ", Predicted: " + str(yhat[0]))
 
 
-def evaluate_labeled_test_data(model_name, image_folder):
-    trained_model = tf.keras.models.load_model('trainedModels/' + model_name)
+def evaluate_labeled_test_data(model_name, image_folder, level):
+    trained_model = tf.keras.models.load_model('trainedModels/' + "level" + str(level) + "/" + model_name)
 
-    image_dataset = load_data("../data/images/" + image_folder)
+    image_dataset = load_data("../data/images/" + image_folder + "/level" + str(level))
 
     pre, re, acc = evaluate_model(trained_model, image_dataset)
 
@@ -41,8 +41,8 @@ if __name__ == '__main__':
     for length in ["100", "300", "500", "1000", "5000"]:
         for trim in ["rndm", "None"]:
             for level in range(1, 7):
-                model_name = "level" + str(level) + "/model_" + length + "_" + length + "_" + trim + ".h5"
-                image_folder = "test_data_realish_" + length + "_" + length + "_" + trim + "/level" + str(level)
+                model_name = "model_" + length + "_" + length + "_" + trim + ".h5"
+                image_folder = "test_data_realish_" + length + "_" + length + "_" + trim
                 pre, re, acc = evaluate_labeled_test_data(model_name, image_folder)
                 statistics[model_name] = [pre, re, acc]
 
