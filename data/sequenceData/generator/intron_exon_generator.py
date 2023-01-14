@@ -133,6 +133,7 @@ def main():
         Generator.sequenceTrimmer(length = l,source = l, method="rndm")
         print("Trimming done")
     Generator.saveSequ("Exon", "Exon")
+    Generator.saveSequ("Intron", "Intron")
 
 if __name__ == '__main__':
     main()
