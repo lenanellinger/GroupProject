@@ -110,10 +110,10 @@ def generate_images_for_level(level, sequences_intron, sequences_exon, folder_na
         convert_matrix_to_image_and_save(pMatrix, "exon", i, level, folder_name)
 
 
-def generate_train_images(introns_file, exons_file, level=None):
+def generate_train_images(introns_file, exons_file, level):
     """
     creates images for given intron and exon sequences
-    :param level: if None all levels are created
+    :param level
     :param introns_file: fasta format with intron sequences
     :param exons_file: fasta format with exon sequences
     """
@@ -125,13 +125,8 @@ def generate_train_images(introns_file, exons_file, level=None):
     else:
         sequences_intron = sequences_intron[:len(sequences_exon)]
 
-    if level is not None:
-        mode = exons_file.replace("Exon_", "").replace(".txt", "")
-        generate_images_for_level(level, sequences_intron, sequences_exon, "train_data_" + mode)
-    else:
-        # generate all levels
-        for level in range(1, 7):
-            generate_images_for_level(level, sequences_intron, sequences_exon)
+    mode = introns_file.replace("Intron_", "").replace(".txt", "")
+    generate_images_for_level(level, sequences_intron, sequences_exon, "train_data_" + mode + "/level" + str(level))
 
 
 def generate_test_images(input_file_name, level=4):
@@ -167,8 +162,9 @@ def generate_test_images_direct_input(sequences, level=4, output_name: str="temp
         index += 1
 
 if __name__ == '__main__':
-    for length in ["100", "300", "500", "1000"]:
+    for length in ["100", "300", "500", "1000", "5000"]:
         for trim in ["rndm", "None"]:
-            introns = "Intron_" + length + "_" + length + "_" + trim + ".txt"
-            exons = "Exon_" + length + "_" + length + "_" + trim + ".txt"
-            generate_train_images(introns, exons, level=4)
+            for level in range(1, 7):
+                introns = "Intron_" + length + "_" + length + "_" + trim + ".txt"
+                exons = "Exon_" + length + "_" + length + "_" + trim + ".txt"
+                generate_train_images(introns, exons, level)
