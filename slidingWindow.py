@@ -60,6 +60,10 @@ class SlidingWindow:
                 for trans in entry['Transcript']:
                     for exon in trans['Exon']:
                         self.sequence.groundTruth[exon['start'] - self.start: exon['end'] - self.start + 1] += 1.0
+                cut_off_left = len(self.sequence) * 0.2
+                cut_off_right = len(self.sequence)* 0.4
+                self.sequence.sequence = self.sequence.sequence[cut_off_left:cut_off_right]
+                self.sequence.groundTruth = self.sequence.groundTruth[cut_off_left:cut_off_right]
 
             except:
                 self.sequence = None
@@ -91,7 +95,8 @@ class SlidingWindow:
                         print(idx)
                         print(image)
                         print(os.path.join(str(windows.size), image))
-                        currentPrediction[idx] = model(np.expand_dims(im, axis = 0))
+                        currentPrediction[idx] = 1- model.predict(np.expand_dims(im, axis = 0))
+                        #currentPrediction[idx] = round(currentPrediction[idx])
                         #self.sequence.prediction[idx : idx + windows.size] += 1 - all_models[level][windows.size - 50](np.expand_dims(im, axis = 0))
                         #self.sequence.timesPredicted[idx : idx + windows.size] += 1.0
                     windows.predictions.append(currentPrediction)
@@ -105,35 +110,39 @@ class SlidingWindow:
     def plotResults(self):
         for wind in self.windowSets:
             i = 0
-            plt.plot(range(len(wind.sequences)), wind.groundTruth, label = str(wind.size) + " ground Truth")
+            plt.plot(range(len(wind.sequences)), wind.groundTruth, label=str(wind.size) + " ground Truth")
             for model in wind.predictions:
-                plt.plot(range(len(wind.sequences)), model, label = str(wind.size) + str(i))
+                plt.plot(range(len(wind.sequences)), model, label = "%s_%s" %(str(wind.size), str(i)))
                 i += 1
             plt.legend()
             plt.show()
 
 
 
+
+
 if __name__ == '__main__':
     # TODO: import the models
-    all_models = {4: {"100_rndm_": tf.keras.models.load_model("model\\trainedModels\\model_100_100_rndm.h5"),
-                  "300_rndm_": tf.keras.models.load_model("model\\trainedModels\\model_300_300_rndm.h5"),
-                  "500_rndm_": tf.keras.models.load_model("model\\trainedModels\\model_500_500_rndm.h5"),
+    all_models = {4: {#"100_rndm_": tf.keras.models.load_model("model\\trainedModels\\model_100_100_rndm.h5"),
+                  #"300_rndm_": tf.keras.models.load_model("model\\trainedModels\\model_300_300_rndm.h5"),
+                  #"500_rndm_": tf.keras.models.load_model("model\\trainedModels\\model_500_500_rndm.h5"),
                         "1000_rndm_": tf.keras.models.load_model("model\\trainedModels\\model_1000_1000_rndm.h5"),
-                      "100_no_": tf.keras.models.load_model("model\\trainedModels\\model_100_100_None.h5."),
-                      "300_no_": tf.keras.models.load_model("model\\trainedModels\\model_300_300_None.h5"),
-                      "500_no_": tf.keras.models.load_model("model\\trainedModels\\model_500_500_None.h5"),
-                      "1000_no_": tf.keras.models.load_model("model\\trainedModels\\model_1000_1000_None.h5")
+                      "5000_rndm_": tf.keras.models.load_model("model\\trainedModels\\model_5000_5000_rndm.h5"),
+                      #"100_no_": tf.keras.models.load_model("model\\trainedModels\\model_100_100_None.h5."),
+                      #"300_no_": tf.keras.models.load_model("model\\trainedModels\\model_300_300_None.h5"),
+                      #"500_no_": tf.keras.models.load_model("model\\trainedModels\\model_500_500_None.h5"),
+                      "1000_no_": tf.keras.models.load_model("model\\trainedModels\\model_1000_1000_None.h5"),
+                      "5000_no_": tf.keras.models.load_model("model\\trainedModels\\model_5000_5000_None.h5")
                       }}
     print("test 1: done")
     mixedSequence = mixedSequenceGenerator("data\\sequenceData\\generator\\prot-cod_genes.txt")
-    random.seed(3)
+    random.seed(42)
     sequences = mixedSequence.mixedSequences(amount=1,length=2000,minlength=500, maxlength=600 , exonNum=1)
     sequence = sequences[0]
 
     print("test 2: done")
-    slider = SlidingWindow(debugger=True, geneDebug= sequence, gene=None)
-    slider.createWindows(sizes=[100, 300, 500])
+    slider = SlidingWindow(debugger=False, geneDebug= sequence, gene= "TP53\n")
+    slider.createWindows(sizes=[100])
     slider.predict(levels=[4], all_models=all_models)
    # slider.adjustEdgesAndGroundTruth()
     slider.plotResults()
