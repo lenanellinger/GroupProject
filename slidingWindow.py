@@ -126,23 +126,28 @@ if __name__ == '__main__':
                   #"300_rndm_": tf.keras.models.load_model("model\\trainedModels\\model_300_300_rndm.h5"),
                   #"500_rndm_": tf.keras.models.load_model("model\\trainedModels\\model_500_500_rndm.h5"),
                         #"1000_rndm_": tf.keras.models.load_model("model\\trainedModels\\level4\\model_1000_1000_rndm.h5"),
-                      "5000_rndm_": tf.keras.models.load_model("model\\trainedModels\\level4\\model_5000_5000_rndm.h5"),
+                     # "5000_rndm_": tf.keras.models.load_model("model\\trainedModels\\level4\\model_5000_5000_rndm.h5"),
                       #"100_no_": tf.keras.models.load_model("model\\trainedModels\\model_100_100_None.h5."),
                       #"300_no_": tf.keras.models.load_model("model\\trainedModels\\model_300_300_None.h5"),
                       #"500_no_": tf.keras.models.load_model("model\\trainedModels\\model_500_500_None.h5"),
                       #"1000_no_": tf.keras.models.load_model("model\\trainedModels\\level4\\model_1000_1000_None.h5"),
-                      "5000_no_": tf.keras.models.load_model("model\\trainedModels\\level4\\model_5000_5000_None.h5"),
-                        "intronexon" : tf.keras.models.load_model("model\\trainedModels\\IntronExonClassifier.h5")
+                      #"5000_no_": tf.keras.models.load_model("model\\trainedModels\\level4\\model_5000_5000_None.h5"),
+                       # "intronexon" : tf.keras.models.load_model("model\\trainedModels\\IntronExonClassifier.h5"),
+                        "100_rndm_3": tf.keras.models.load_model("model\\trainedModels\\level3\\model_100_100_rndm.h5"),
+        "300_rndm_3": tf.keras.models.load_model("model\\trainedModels\\level3\\model_300_300_rndm.h5"),
+        "500_rndm_3" : tf.keras.models.load_model("model\\trainedModels\\level3\\model_500_500_rndm.h5"),
+        "1000_rndm_3" : tf.keras.models.load_model("model\\trainedModels\\level3\\model_1000_1000_rndm.h5"),
+        "5000_rndm_3" : tf.keras.models.load_model("model\\trainedModels\\level3\\model_5000_5000_rndm.h5")
                       }}
     print("test 1: done")
     mixedSequence = mixedSequenceGenerator("data\\sequenceData\\generator\\prot-cod_genes.txt")
     random.seed(42)
-    #sequences = mixedSequence.mixedSequences(amount=1,length=2000,minlength=500, maxlength=600 , exonNum=1)
-    #sequence = sequences[0]
+    sequences = mixedSequence.mixedSequences(amount=1,length=2000,minlength=550, maxlength=600 , exonNum=1)
+    sequence = sequences[0]
 
     print("test 2: done")
-    slider = SlidingWindow(debugger=False, geneDebug= None, gene= "TP53\n")
-    slider.createWindows(sizes=[100])
-    slider.predict(levels=[4], all_models=all_models)
+    slider = SlidingWindow(debugger=True, geneDebug= sequence, gene= "TP53\n")
+    slider.createWindows(sizes=[100, 300, 500])
+    slider.predict(levels=[3], all_models=all_models)
    # slider.adjustEdgesAndGroundTruth()
     slider.plotResults()
