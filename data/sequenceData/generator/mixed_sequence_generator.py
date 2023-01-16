@@ -82,7 +82,7 @@ class mixedSequenceGenerator:
         return (left - leftAdd + currentPos, left + middle + rightAdd + currentPos)
 
 
-    def mixedSequences(self, amount, length, exonNum ):
+    def mixedSequences(self, amount, length, minlength, maxlength, exonNum ):
         sequences = []
         while len(sequences) < amount:
             rndmGene = self.geneAnnotator(random.sample(self.allGenes, 1)[0])
@@ -90,7 +90,7 @@ class mixedSequenceGenerator:
                 for segment in range(len(rndmGene[2])):
                     if rndmGene[2][segment] == 1 and segment != len(rndmGene[2])-1:  # this solution is supoptimal
                         segmentLength = sum(rndmGene[3][segment - 1:segment + 2])
-                        if segmentLength > length:
+                        if segmentLength > length and rndmGene[3][segment] > minlength and rndmGene[3][segment] < maxlength:
                             segmentBorders = self.generateSegment(rndmGene[3][segment-1], rndmGene[3][segment],
                                                                   rndmGene[3][segment +1], length,
                                                                   rndmGene[4][segment-1]-rndmGene[3][segment-1]
@@ -106,7 +106,7 @@ class mixedSequenceGenerator:
 
 def main():
     mixedSequGenerator = mixedSequenceGenerator("prot-cod_genes.txt")
-    sequences = mixedSequGenerator.mixedSequences(20, 5000, 1)
+    sequences = mixedSequGenerator.mixedSequences(1, 5000,300, 400, 1)
     with open("1_exon_5000_length.txt", "w") as e:
         for i in sequences:
             e.write("> Exon Position: %s. Exon-Intron-Ratio: %s\n" %(str(i[2]), str(i[3])))

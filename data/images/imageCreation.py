@@ -145,6 +145,22 @@ def generate_test_images(input_file_name, level=4):
         convert_matrix_to_image_and_save(p_matrix, None, i, level, folder_name=input_file_name)
 
 
+def generate_test_images_direct_input(sequences, level=4, output_name: str="temp"):
+    """
+    generates images for test sequences (not given if intron or exon)
+    :param input_file_name
+    :param level: default is 4
+    """
+
+    alphabet = ['A', 'C', 'G', 'T']
+    keywords = [''.join(i) for i in itertools.product(alphabet, repeat=level)]
+
+    index = 0
+    for seq in sequences:
+        p_matrix = create_percentage_matrix(seq, level, keywords)
+        convert_matrix_to_image_and_save(p_matrix, None, index, level, folder_name=output_name)
+        index += 1
+
 if __name__ == '__main__':
     for length in ["100", "300", "500", "1000", "5000"]:
         for trim in ["rndm", "None"]:
