@@ -42,7 +42,7 @@ if __name__ == '__main__':
             for level in range(1, 7):
                 model_name = length + "_" + length + "_" + trim
                 folder_name = "train_data_" + model_name
-                pre, re, acc = training(folder_name, "model_" + model_name, level)
+                pre, re, acc = training(folder_name, level, "model_" + model_name)
         print(statistics)
 
     with open('../evaluation/statistics_train.pkl', 'wb') as f:
