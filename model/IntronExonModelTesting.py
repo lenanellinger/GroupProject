@@ -18,7 +18,7 @@ def mixed_sequence_test():
                 ratio = re.findall(r'\d[.]\d+', line)
                 exon_intron_rates.append(float(ratio[0]))
 
-    folder_dir = "../data/images/mixed_inferno_level5"
+    folder_dir = "../data/images/test_data_mixed_sequences"
 
     for i, image in enumerate(os.listdir(folder_dir)):
         im = plt.imread(os.path.join(folder_dir, image))[:, :, :3]

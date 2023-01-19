@@ -61,8 +61,7 @@ def predict(model, image):
     plt.imshow(image)
     plt.show()
 
-    yhat = model.predict(np.expand_dims(image / 255, 0))
-
+    yhat = model.predict(np.expand_dims(image[:, :, :3] / 255, 0))
     if yhat > 0.5:
         print(f'Predicted class is Intron')
     else:

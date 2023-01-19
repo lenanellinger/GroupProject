@@ -66,7 +66,7 @@ def convert_matrix_to_image_and_save(p_matrix, intron_exon, index, level, folder
     color_map = "inferno"
     if folder_name == "":
         if intron_exon is None:
-            path = "unknown_" + color_map + "_level" + str(level) + "/" + str(intron_exon)
+            path = "unknown_" + color_map + "/level" + str(level)
         else:
             path = color_map + "/level" + str(level) + "/" + str(intron_exon)
     else:
@@ -103,14 +103,14 @@ def generate_images_for_level(level, sequences_intron, sequences_exon, folder_na
     print()
 
     for i, seq in enumerate(sequences_intron):
-        pMatrix = create_percentage_matrix(seq, level, keywords)
-        convert_matrix_to_image_and_save(pMatrix, "intron", i, level, folder_name)
+        p_matrix = create_percentage_matrix(seq, level, keywords)
+        convert_matrix_to_image_and_save(p_matrix, "intron", i, level, folder_name)
     for i, seq in enumerate(sequences_exon):
-        pMatrix = create_percentage_matrix(seq, level, keywords)
-        convert_matrix_to_image_and_save(pMatrix, "exon", i, level, folder_name)
+        p_matrix = create_percentage_matrix(seq, level, keywords)
+        convert_matrix_to_image_and_save(p_matrix, "exon", i, level, folder_name)
 
 
-def generate_train_images(introns_file, exons_file, level):
+def generate_labeled_train_images(introns_file, exons_file, level):
     """
     creates images for given intron and exon sequences
     :param level
@@ -129,11 +129,11 @@ def generate_train_images(introns_file, exons_file, level):
     generate_images_for_level(level, sequences_intron, sequences_exon, "train_data_" + mode + "/level" + str(level))
 
 
-def generate_test_images(input_file_name, level=4):
+def generate_unlabeled_test_images(input_file_name, level=3):
     """
     generates images for test sequences (not given if intron or exon)
     :param input_file_name
-    :param level: default is 4
+    :param level: default is 3
     """
     sequences = get_sequences("../sequenceData/" + input_file_name)
 
@@ -145,10 +145,11 @@ def generate_test_images(input_file_name, level=4):
         convert_matrix_to_image_and_save(p_matrix, None, i, level, folder_name=input_file_name)
 
 
-def generate_test_images_direct_input(sequences, level=4, output_name: str="temp"):
+def generate_test_images_direct_input(sequences, level=4, output_name: str = "temp"):
     """
-    generates images for test sequences (not given if intron or exon)
-    :param input_file_name
+    generates images for test sequences (not labeled with intron or exon)
+    :param output_name:
+    :param sequences:
     :param level: default is 4
     """
 
@@ -161,10 +162,11 @@ def generate_test_images_direct_input(sequences, level=4, output_name: str="temp
         convert_matrix_to_image_and_save(p_matrix, None, index, level, folder_name=output_name)
         index += 1
 
+
 if __name__ == '__main__':
     for length in ["100", "300", "500", "1000", "5000"]:
         for trim in ["rndm", "None"]:
             for level in range(1, 7):
                 introns = "Intron_" + length + "_" + length + "_" + trim + ".txt"
                 exons = "Exon_" + length + "_" + length + "_" + trim + ".txt"
-                generate_train_images(introns, exons, level)
+                generate_labeled_train_images(introns, exons, level)

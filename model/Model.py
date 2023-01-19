@@ -49,7 +49,6 @@ def train_model(model, train, val):
     :return: trained model
     :return: history of training process
     """
-    # training
     hist = model.fit(train, epochs=20, validation_data=val)
 
     return model, hist

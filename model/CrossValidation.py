@@ -14,7 +14,7 @@ def cross_validation(data, level, cmap):
     """
     validates the model with k-fold cross validation
     :param cmap: color map
-    :param level:
+    :param level
     :param data: whole dataset
     :return average validation accuracy
     :return average validation loss
