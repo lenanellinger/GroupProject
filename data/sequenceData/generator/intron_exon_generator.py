@@ -11,6 +11,10 @@ random.seed(42)
 class dataGenerator:
 
     def __init__(self, proteinList):
+        '''
+        inits the class and save all genes in an array.
+        :param proteinList: the file path where all prots are stored
+        '''
         f = open(proteinList)
         self.allGenes = []
         for line in f:
@@ -22,18 +26,28 @@ class dataGenerator:
         self.normalIntrons = []
 
     def createExonIntronsInit(self, sequLen=5000, sequNum=2000):
+        '''
+        Creates a certain number of sequences that have at least the length of sequLen.
+        The generated exons and introns are saved in the object
+        :param sequLen: the min length of the sequences
+        :param sequNum: the number of sequences returned
+        :return:
+        '''
         longExons = []
         concatExon = ""
         longIntrons = []
         concatIntron = ""
+        genes = []
         while len(longExons) < sequNum:
             exons = []
             introns = []
             randomGenes = random.sample(self.allGenes, 15)
             for gene in randomGenes:
+                genes.append(gene)
                 self.allGenes.remove(gene)
 
             for gene in randomGenes:
+                print("test")
 
                 try:
                     entry = ensembl_rest.symbol_lookup('human', gene.split('\n', 1)[0],
@@ -81,12 +95,22 @@ class dataGenerator:
                         longIntrons.append(concatIntron)
                         concatIntron = ""
             print(str(len(longExons)) + " exons are created, " + str(len(longIntrons)) + " Introns are created")
+            print(len(genes))
 
         self.intronArrays.append(
             (longIntrons, sequLen, sequLen, "None"))  # the first sequLen being the real length the second the original
         self.exonArrays.append((longExons, sequLen, sequLen, "None"))
+        print(len(genes))
 
     def Trimmer(self, length, sequences, method="rndm"):
+        '''
+        Select gets a sequence and trims it to the input length. Three different trimming methods are useable
+        rnmd gets a random substring, left the prefix and right the suffix of the sequence
+        :param length: The length the sequence should be trimmed to
+        :param sequences: the input sequence as string
+        :param method: how to trim the sequence
+        :return: the trimmed sequence
+        '''
         result = []
         for sequ in sequences:
             if len(sequ) <= length:
@@ -103,6 +127,14 @@ class dataGenerator:
         return result
 
     def sequenceTrimmer(self, length, source, method="rndm"):
+        '''
+        Trims all sequences with a source-length (from createExonIntronsInit) to the input length
+        Different methods are usable (see Trimmer)
+        :param length: The length the sequences should be trimmed to
+        :param source: The original source-length (or minimal length)
+        :param method: how to trim the sequences
+        :return: None, saves the new sequences in the object
+        '''
         addingTrimmedE = []
         addingTrimmedI = []
         for i in range(len(self.intronArrays)):
@@ -113,6 +145,12 @@ class dataGenerator:
         self.intronArrays = self.intronArrays + addingTrimmedI
 
     def saveSequ(self, IntEx, IntExString):
+        '''
+        saves all Exons arrays created within the object or all intron arrays
+        :param IntEx: Save introns or exons?
+        :param IntExString: Information how to store the file
+        :return:
+        '''
         if IntEx == "Exon":
             savedObject = self.exonArrays
         else:
@@ -126,10 +164,10 @@ class dataGenerator:
 
 def main():
     Generator = dataGenerator("prot-cod_genes.txt")
-    for l in [5000]:
+    for l in [500,1000]:
         Generator.createExonIntronsInit(sequLen=l, sequNum=2000)
         print("Data generation done")
-    for l in [5000]:
+    for l in [500,1000]:
         Generator.sequenceTrimmer(length = l,source = l, method="rndm")
         print("Trimming done")
     Generator.saveSequ("Exon", "Exon")
